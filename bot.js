@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 import RSSParser from "rss-parser";
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;

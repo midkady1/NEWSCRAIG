@@ -1,5 +1,5 @@
 {
-  "name": "my-telegram-bot",
+  "name": "news craig",
   "version": "1.0.0",
   "main": "bot.js",
   "type": "module",

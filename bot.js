@@ -1,4 +1,4 @@
-import RSSParser from "rss-parser";
+mport RSSParser from "rss-parser";
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;

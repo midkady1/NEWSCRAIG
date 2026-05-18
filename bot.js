@@ -378,25 +378,35 @@ async function checkDailyDigest() {
 }
 
 async function main() {
+  // Защита от падения, если токенов вообще нет в системе
   if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) {
-    console.error("TELEGRAM_TOKEN and TELEGRAM_CHAT_ID must be set.");
+    console.error("КРИТИЧЕСКАЯ ОШИБКА: TELEGRAM_TOKEN или TELEGRAM_CHAT_ID не заданы в .env!");
     process.exit(1);
   }
-  console.log("🚀 News Craig started.");
-  await sendTelegram("🚀 *News Craig запущен!*\n\n🔴 Срочные новости — приоритетный формат\n⚡️ Обычные макро-новости — стандартный формат\n⏰ Напоминания за 15 минут до выхода данных\n📈 Ценовые алерты: Золото, WTI, Brent, DXY\n🔔 Открытие торговых сессий (с учётом летнего времени)");
+
+  console.log("🚀 Попытка запуска News Craig...");
   
-  await checkAllFeeds();
-  await checkCalendarReminders();
-  await initPriceLevels();
+  // Оборачиваем стартовое сообщение в try/catch, чтобы бот не падал из-за неверного токена (ошибка 401)
+  try {
+    await sendTelegram("🚀 *News Craig запущен!*\n\n🔴 Срочные новости — приоритетный формат\n⚡️ Обычные макро-новости — стандартный формат\n⏰ Напоминания за 15 минут до выхода данных\n📈 Ценовые алерты: Золото, WTI, Brent, DXY\n🔔 Открытие торговых сессий (с учётом летнего времени)");
+  } catch (tgErr) {
+    console.error("Ошибка отправки стартового сообщения в ТГ (Проверьте токен бота!):", tgErr.message);
+  }
   
-  setInterval(checkAllFeeds, POLL_INTERVAL_MS);
-  setInterval(checkCalendarReminders, CALENDAR_INTERVAL_MS);
-  setInterval(checkPriceAlerts, PRICE_INTERVAL_MS);
+  // Запускаем первичный опрос функций, изолируя каждую от падения всего бота
+  try { await checkAllFeeds(); } catch (e) { console.error("Ошибка первого запуска Feeds:", e.message); }
+  try { await checkCalendarReminders(); } catch (e) { console.error("Ошибка первого запуска Календаря:", e.message); }
+  try { await initPriceLevels(); } catch (e) { console.error("Ошибка первого запуска Цен:", e.message); }
+
+  // Стабильные интервалы, которые не упадут, даже если внутри функций случится ошибка
+  setInterval(async () => { try { await checkAllFeeds(); } catch(e) { console.error(e.message); } }, POLL_INTERVAL_MS);
+  setInterval(async () => { try { await checkCalendarReminders(); } catch(e) { console.error(e.message); } }, CALENDAR_INTERVAL_MS);
+  setInterval(async () => { try { await checkPriceAlerts(); } catch(e) { console.error(e.message); } }, PRICE_INTERVAL_MS);
   
   setInterval(async () => {
-    await checkSessionAlerts();
-    await checkWeeklyDigest();
-    await checkDailyDigest();
+    try { await checkSessionAlerts(); } catch(e) { console.error(e.message); }
+    try { await checkWeeklyDigest(); } catch(e) { console.error(e.message); }
+    try { await checkDailyDigest(); } catch(e) { console.error(e.message); }
   }, CALENDAR_INTERVAL_MS);
 }
 

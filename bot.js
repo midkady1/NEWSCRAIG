@@ -3,9 +3,9 @@ import RSSParser from "rss-parser";
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 const TELEGRAM_CHANNEL = "@newscraig";
-const POLL_INTERVAL_MS = 15_000;
-const CALENDAR_INTERVAL_MS = 60_000;
-const PRICE_INTERVAL_MS = 5 * 60_000;
+const POLL_INTERVAL_MS = 150_000;
+const CALENDAR_INTERVAL_MS = 600_000;
+const PRICE_INTERVAL_MS = 5 * 600_000;
 const CALENDAR_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json";
 
 const FEEDS = [

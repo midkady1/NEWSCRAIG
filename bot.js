@@ -251,9 +251,15 @@ async function fetchPrice(symbol) {
     const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
     if (!res.ok) return null;
     const data = await res.json();
-    return data?.chart?.result?.?.meta?.regularMarketPrice ?? null;
+    
+    // Старый надежный способ проверки объекта без оператора ?.
+    if (data && data.chart && data.chart.result && data.chart.result[0] && data.chart.result[0].meta) {
+      return data.chart.result[0].meta.regularMarketPrice ?? null;
+    }
+    return null;
   } catch { return null; }
 }
+
 
 async function initPriceLevels() {
   for (const asset of PRICE_ASSETS) {

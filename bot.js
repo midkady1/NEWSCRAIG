@@ -483,34 +483,43 @@ function matchesRule(rule, text) {
 // ─── LLM Аналитика (Gemini) → fallback на rule-based ─────────────────────────
 
 async function generateLLMAnalytics(titleEn, descEn) {
-  if (!process.env.GEMINI_API_KEY) {
-    console.log("[LLM] GEMINI_API_KEY не найден");
-    return null;
-  }
+  if (!process.env.GEMINI_API_KEY) return null;
 
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-  const prompt = `Ты — опытный макро-трейдер. Проанализируй новость и её влияние на рынки.
+  const prompt = `You are an experienced macro trader. Analyze the news and its impact on financial markets.
 
-Новость:
+News:
 """
 ${titleEn}
 
 ${descEn}
 """
 
-Ответ **только JSON**, без лишнего текста:
+Analyze the impact on ALL relevant asset classes from the list below. Include ONLY those that are actually affected by this news (skip irrelevant ones):
+
+Categories to consider:
+- 💵 Forex: DXY, EUR/USD, GBP/USD, USD/JPY, AUD/USD, USD/CAD, USD/CHF, NZD/USD, USD/CNY
+- 🥇 Precious metals: Gold (XAU/USD), Silver (XAG/USD), Platinum, Palladium
+- 🛢️ Energy: WTI Crude, Brent Crude, Natural Gas (TTF/Henry Hub)
+- 🥈 Industrial metals: Copper (HG), Aluminum, Steel
+- 🌾 Commodities: Wheat, Soybeans, Corn
+- 📉 Bonds: US Treasuries (10Y), European Bonds
+- 🪙 Crypto: BTC, ETH (only if relevant to macro policy)
+- 🌍 Emerging markets: EM currencies, EM bonds
+
+Respond ONLY with valid JSON, no extra text:
 
 {
   "impacts": [
     {
-      "asset": "Название актива с эмодзи",
+      "asset": "Asset name with emoji",
       "direction": "↑ | ↓ | ↑↓",
       "strength": "high | medium | low",
-      "reason": "Краткое объяснение на русском"
+      "reason": "Brief explanation in Russian (max 15 words)"
     }
   ],
-  "summary": "Общий вывод на русском (1-2 предложения)",
+  "summary": "Overall conclusion in Russian (1-2 sentences)",
   "sentiment": "bullish | bearish | neutral"
 }`;
 
@@ -528,8 +537,11 @@ ${descEn}
     const analysis = JSON.parse(text);
     if (!analysis.impacts || analysis.impacts.length === 0) return null;
 
-    const lines = analysis.impacts.slice(0, 4).map((imp) =>
-      `  ${imp.direction} *${imp.asset}* — _${imp.reason}_`
+    // Иконка силы
+    const strengthIcon = { high: "🔴", medium: "🟡", low: "🟢" };
+
+    const lines = analysis.impacts.slice(0, 8).map((imp) =>
+      `  ${imp.direction} ${strengthIcon[imp.strength] || "🟡"} *${imp.asset}* — _${imp.reason}_`
     );
 
     return `📊 *LLM Аналитика:*\n${lines.join("\n")}\n\n💡 ${analysis.summary || ""}`;
@@ -538,6 +550,7 @@ ${descEn}
     return null;
   }
 }
+
 
 // Единственная функция generateAnalytics — Gemini первично, rule-based как fallback
 async function generateAnalytics(titleEn, descEn) {

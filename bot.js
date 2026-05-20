@@ -891,10 +891,19 @@ async function checkFeed(feedUrl, strict = false) {
       const shortDesc     = cleanDesc.length > 300 ? cleanDesc.slice(0, 300) + "…" : cleanDesc;
 
       // Translate title and description to Russian for Telegram
-      const [titleRu, descRu] = await Promise.all([
-        translateToRussian(titleEn),
-        translateToRussian(shortDesc),
-      ]);
+      let [titleRu, descRu] = await Promise.all([
+  translateToRussian(titleEn),
+  translateToRussian(shortDesc),
+]);
+
+// если перевод не удался — оставляем английский
+if (!containsCyrillic(titleRu)) {
+  titleRu = titleEn;
+}
+
+if (!containsCyrillic(descRu) && shortDesc.trim()) {
+  descRu = shortDesc;
+}}
 
       const vip             = isVip(fullText);
       const header          = vip ? "🔴 *News Craig Breaking*" : "⚡️ *News Craig Macro*";

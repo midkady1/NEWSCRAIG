@@ -1,14 +1,12 @@
 {
-  "name": "news craig",
-  "version": "1.0.0",
-  "main": "bot.js",
+  "name": "newscraig",
+  "version": "2.0.0",
   "type": "module",
+  "main": "bot.js",
   "scripts": {
     "start": "node bot.js"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
-    "node-telegram-bot-api": "^0.66.0",
     "rss-parser": "^3.13.0"
   }
 }

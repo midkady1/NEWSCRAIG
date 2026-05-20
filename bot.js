@@ -33,6 +33,10 @@ const FEEDS = [
   {
     url: "https://oilprice.com/rss/main"
   }
+  
+  {
+  url: "https://www.financialjuice.com/feed.ashx"
+  }
 
 ];
 

@@ -1,4 +1,5 @@
 import RSSParser from "rss-parser";
+import { TwitterApi } from "twitter-api-v2";
 
 process.setMaxListeners(50);
 

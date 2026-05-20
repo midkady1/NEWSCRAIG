@@ -355,7 +355,7 @@ async function checkFeed(feedUrl) {
       }
 
       const message = `
-${priority} *NEWS CRAIG AI*
+${priority} *NEWS CRAIG*
 
 📰 *${title}*
 
@@ -456,7 +456,7 @@ ${impact}
 }
 
 console.log(
-  "🚀 NEWS CRAIG AI TERMINAL STARTED"
+  "🚀 NEWS CRAIG TERMINAL STARTED"
 );
 
 checkAllFeeds();

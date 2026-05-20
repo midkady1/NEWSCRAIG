@@ -66,7 +66,6 @@ const FEEDS = [
 
 ];
 
-const parser = new RSSParser();
 
 const FED_SPEAKERS = [
   "powell",

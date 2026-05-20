@@ -390,6 +390,8 @@ ${riskTone}
 `.slice(0, 4000);
 
       await sendTelegram(message);
+      
+      await postToTwitter(cleanTitle);
 
       console.log("[NEWS]", title);
 
@@ -468,7 +470,7 @@ ${impact}
 
       await sendTelegram(message);
       
-      await postToTwitter(message);
+      await postToTwitter(cleanTitle);
       
       console.log(
         "[CALENDAR]",

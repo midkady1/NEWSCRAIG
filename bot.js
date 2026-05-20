@@ -468,6 +468,32 @@ ${impact}
 `;
 
       await sendTelegram(message);
+      
+      const HIGH_IMPACT = [
+
+  "trump",
+  "fed",
+  "powell",
+  "iran",
+  "tariffs",
+  "war",
+  "cpi",
+  "nfp",
+  "fomc",
+  "ecb",
+  "boj",
+  "oil",
+  "missile"
+
+];
+
+const shouldPostToX = HIGH_IMPACT.some(keyword =>
+  message.toLowerCase().includes(keyword)
+);
+
+if (shouldPostToX) {
+  await postToTwitter(message);
+}
 
       console.log(
         "[CALENDAR]",

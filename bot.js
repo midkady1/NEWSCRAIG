@@ -20,7 +20,6 @@ const FEEDS = [
   { url: "https://www.forexlive.com/feed/news" },
   { url: "https://rss.politico.com/economy.xml", strict: true },
   { url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100727362", strict: true },
-  { url: "https://feeds.bbci.co.uk/news/world/rss.xml", strict: true },
   { url: "https://feeds.skynews.com/feeds/rss/world.xml", strict: true },
 ];
 

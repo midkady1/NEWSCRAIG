@@ -903,7 +903,7 @@ if (!containsCyrillic(titleRu)) {
 
 if (!containsCyrillic(descRu) && shortDesc.trim()) {
   descRu = shortDesc;
-}}
+}
 
       const vip             = isVip(fullText);
       const header          = vip ? "🔴 *News Craig Breaking*" : "⚡️ *News Craig Macro*";

@@ -1,10 +1,10 @@
 import RSSParser from "rss-parser";
 
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const TELEGRAM_TOKEN = "8826840554:AAF93UzOySJs8YyfIbWZ_M15xrVi40HHrVU";
+const TELEGRAM_CHAT_ID = "7219164629";
 const TELEGRAM_CHANNEL = "@newscraig";
 
-const POLL_INTERVAL_MS = 15_000;
+const POLL_INTERVAL_MS = 60_000;
 const CALENDAR_INTERVAL_MS = 60_000;
 
 const CALENDAR_URL =

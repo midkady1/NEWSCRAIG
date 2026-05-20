@@ -1,5 +1,7 @@
 import RSSParser from "rss-parser";
 
+process.setMaxListeners(50);
+
 const TELEGRAM_TOKEN = "8826840554:AAF93UzOySJs8YyfIbWZ_M15xrVi40HHrVU";
 const TELEGRAM_CHAT_ID = "7219164629";
 const TELEGRAM_CHANNEL = "@newscraig";

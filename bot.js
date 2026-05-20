@@ -3,6 +3,24 @@ import { TwitterApi } from "twitter-api-v2";
 
 process.setMaxListeners(50);
 
+const parser = new RSSParser();
+
+async function postToTwitter(text) {
+  try {
+
+    const tweet = `🚨 BREAKING:\n\n${text}`;
+
+    await twitterClient.v2.tweet(tweet);
+
+    console.log("✅ Posted to X");
+
+  } catch (err) {
+
+    console.log("Twitter error:", err);
+
+  }
+}
+
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 const TELEGRAM_CHANNEL = "@newscraig";

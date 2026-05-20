@@ -1,5 +1,9 @@
 import RSSParser from "rss-parser";
 
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 const TELEGRAM_CHANNEL = "@newscraig";
@@ -100,6 +104,69 @@ const CURRENCY_FLAG = {
   AUD: "🇦🇺", CAD: "🇨🇦", CHF: "🇨🇭", NZD: "🇳🇿",
   CNY: "🇨🇳", All: "🌐",
 };
+
+// ─── LLM Аналитика (Gemini) ─────────────────────────────────────────────────
+
+async function generateLLMAnalytics(titleEn, descEn) {
+  if (!process.env.GEMINI_API_KEY) {
+    console.log("[LLM] GEMINI_API_KEY не найден");
+    return null;
+  }
+
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-2.5-flash", 
+  });
+
+  const prompt = `Ты — опытный макро-трейдер. Проанализируй новость и её влияние на рынки.
+
+Новость:
+"""
+${titleEn}
+
+${descEn}
+"""
+
+Ответ **только JSON**, без лишнего текста:
+
+{
+  "impacts": [
+    {
+      "asset": "Название актива с эмодзи",
+      "direction": "↑ | ↓ | ↑↓",
+      "strength": "high | medium | low",
+      "reason": "Краткое объяснение на русском"
+    }
+  ],
+  "summary": "Общий вывод на русском (1-2 предложения)",
+  "sentiment": "bullish | bearish | neutral"
+}`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    let text = response.text().trim();
+
+    // Очистка на случай лишнего текста
+    const jsonStart = text.indexOf('{');
+    const jsonEnd = text.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      text = text.slice(jsonStart, jsonEnd + 1);
+    }
+
+    const analysis = JSON.parse(text);
+
+    if (!analysis.impacts || analysis.impacts.length === 0) return null;
+
+    const lines = analysis.impacts.slice(0, 4).map(imp => 
+      `  ${imp.direction} *${imp.asset}* — _${imp.reason}_`
+    );
+
+    return `📊 *LLM Аналитика:*\n${lines.join("\n")}\n\n💡 ${analysis.summary || ''}`;
+  } catch (err) {
+    console.error("Gemini Error:", err.message);
+    return null;
+  }
+}
 
 // ─── Analytics Engine ─────────────────────────────────────────────────────────
 //

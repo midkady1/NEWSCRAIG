@@ -32,10 +32,11 @@ const FEEDS = [
   // 🔥 OIL / COMMODITIES
   {
     url: "https://oilprice.com/rss/main"
-  }
-  
+  },
+
+  // 🔥 BREAKING NEWS
   {
-  url: "https://www.financialjuice.com/feed.ashx"
+    url: "https://www.financialjuice.com/feed.ashx"
   }
 
 ];

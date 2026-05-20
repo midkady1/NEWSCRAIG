@@ -118,6 +118,10 @@ const NOISE_BLACKLIST = [
   "guidance",
   "shares fell",
   "shares rose",
+  "trillion dollar opportunity",
+  "green tech",
+  "ai race",
+  "plastic waste",
 ];
 
 const sentArticles = new Set();

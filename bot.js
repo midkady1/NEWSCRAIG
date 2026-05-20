@@ -915,15 +915,19 @@ function sessionOpenTimeMoscow(session) {
 
 async function checkSessionAlerts() {
   const nowDateKey = currentMoscowDateKey();
+  const { hour: currentHour, minute: currentMinute } = getLocalHHMM("Europe/Moscow");
 
   for (const session of SESSIONS) {
     const warn = sessionWarnHHMM(session);
-    const { hour, minute } = getLocalHHMM(session.timezone);
+    
+    // Проверяем точное совпадение времени предупреждения
+    if (currentHour !== warn.hour || currentMinute !== warn.minute) continue;
 
-    if (hour !== warn.hour || minute !== warn.minute) continue;
-    if (new Date().getSeconds() >= 45) continue;
+    // Дополнительная защита от дублей в одну и ту же минуту
+    if (new Date().getSeconds() >= 50) continue; // срабатываем только в первые 50 секунд минуты
 
-    const alertKey = `${session.name}|${nowDateKey}`;
+    const alertKey = `${session.name}|${nowDateKey}|${warn.hour}:${warn.minute}`;
+
     if (sentSessionAlerts.has(alertKey)) continue;
     sentSessionAlerts.add(alertKey);
 
@@ -933,9 +937,10 @@ async function checkSessionAlerts() {
     await sendTelegram(
       `🔔 *ОТКРЫТИЕ СЕССИИ ЧЕРЕЗ ${session.warnMinutes} МИНУТ*\n\n` +
       `${session.emoji} *${session.name}*\n` +
-      `🕐 Открытие: *${openTimeMsk} МСК* (${openTimeLocal} местного времени)\n` +
+      `🕐 Открытие: *${openTimeMsk} МСК* (${openTimeLocal} местного)\n` +
       `📍 _Время учитывает летнее/зимнее время автоматически_`
     );
+
     console.log(`[${new Date().toISOString()}] [SESSION] ${session.name} opens in ${session.warnMinutes} min`);
   }
 }

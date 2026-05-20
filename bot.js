@@ -674,21 +674,20 @@ async function checkFeed(feedUrl, strict = false) {
 
       const fullText = `${titleEn} ${cleanDesc}`.toLowerCase();
 
-      // Чёрный список — всегда применяется
+      // Чёрный список
       if (STOCK_BLACKLIST.some((kw) => fullText.includes(kw))) continue;
 
-      // Строгий режим (BBC, Sky, AP, WH): только VIP-слова двигают рынок
+      // Фильтрация
       if (strict) {
         if (!VIP_KEYWORDS.some((kw) => fullText.includes(kw))) continue;
       } else {
-        // Стандартный режим: достаточно одного GOOD_KEYWORDS
         if (!GOOD_KEYWORDS.some((kw) => fullText.includes(kw))) continue;
       }
 
       sentArticles.add(titleEn);
 
       const shortDesc = cleanDesc.length > 300 ? cleanDesc.slice(0, 300) + "…" : cleanDesc;
-      const shortTitleEn = titleEn.length > 200 ? titleEn.slice(0, 200) + "…" : titleEn;
+      const shortTitleEn = titleEn.length > 200 ? titleEn.slice(0, 200) + "…" : titleEn; // оставил для логирования
 
       const [titleRu, descRu] = await Promise.all([
         translateToRussian(titleEn),
@@ -707,7 +706,6 @@ async function checkFeed(feedUrl, strict = false) {
         `${header}\n\n` +
         `📌 *${titleRu}*\n\n` +
         `${descBlock}` +
-        `🇬🇧 _Оригинал:_\n_${shortTitleEn}_` +
         `${analyticsSection}\n\n` +
         `🔗 [Источник](${link})`
       ).slice(0, 4096);

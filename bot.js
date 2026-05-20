@@ -105,8 +105,7 @@ const CURRENCY_FLAG = {
   CNY: "🇨🇳", All: "🌐",
 };
 
-// ─── LLM Аналитика (Gemini) ─────────────────────────────────────────────────
-
+    // ─── LLM Аналитика (Gemini) ─────────────────────────────────────────────────
 async function generateLLMAnalytics(titleEn, descEn) {
   if (!process.env.GEMINI_API_KEY) {
     console.log("[LLM] GEMINI_API_KEY не найден");
@@ -146,7 +145,6 @@ ${descEn}
     const response = await result.response;
     let text = response.text().trim();
 
-    // Очистка на случай лишнего текста
     const jsonStart = text.indexOf('{');
     const jsonEnd = text.lastIndexOf('}');
     if (jsonStart !== -1 && jsonEnd !== -1) {
@@ -168,15 +166,33 @@ ${descEn}
   }
 }
 
+
 // ─── Analytics Engine ─────────────────────────────────────────────────────────
-//
-// Each rule:
-//   keywords   — слова в тексте новости (lowercase)
-//   negKeywords — если присутствуют, правило НЕ срабатывает (избегаем ложных совпадений)
-//   impacts     — список затронутых активов
-//     asset     — название актива
-//     dir       — "↑" рост | "↓" падение | "↑↓" волатильность
-//     reason    — краткое объяснение по-русски
+async function generateAnalytics(titleEn, descEn) {
+  const llmResult = await generateLLMAnalytics(titleEn, descEn);
+  if (llmResult) return llmResult;
+
+  console.log("[LLM fallback] Используем rule-based");
+  
+  const text = `${titleEn} ${descEn}`.toLowerCase();
+  const matchedImpacts = [];
+  const seenAssets = new Set();
+
+  for (const rule of ANALYTICS_RULES) {
+    if (!matchesRule(rule, text)) continue;
+    for (const impact of rule.impacts) {
+      if (seenAssets.has(impact.asset)) continue;
+      seenAssets.add(impact.asset);
+      matchedImpacts.push(impact);
+    }
+  }
+
+  if (matchedImpacts.length === 0) return null;
+
+  const top = matchedImpacts.slice(0, 4);
+  const lines = top.map((imp) => `  ${imp.dir} *${imp.asset}* — _${imp.reason}_`);
+  return `📊 *Аналитика:*\n${lines.join("\n")}`;
+}
 
 const ANALYTICS_RULES = [
 

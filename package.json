@@ -1,5 +1,5 @@
 {
-  "name": "news craig",
+  "name": "newscraig",
   "version": "2.0.0",
   "type": "module",
   "main": "bot.js",
@@ -7,6 +7,7 @@
     "start": "node bot.js"
   },
   "dependencies": {
-    "rss-parser": "^3.13.0"
+    "rss-parser": "^3.13.0",
+    "twitter-api-v2": "^1.17.1"
   }
 }

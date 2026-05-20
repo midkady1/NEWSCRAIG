@@ -11,8 +11,37 @@ const CALENDAR_URL =
   "https://nfs.faireconomy.media/ff_calendar_thisweek.json";
 
 const FEEDS = [
-  { url: "https://investinglive.com/feed/news/" },
-  { url: "https://feeds.marketwatch.com/marketwatch/topstories/" },
+
+  // 🔥 FAST MACRO / CENTRAL BANKS
+  {
+    url: "https://www.forexlive.com/feed/news"
+  },
+
+  // 🔥 REUTERS BUSINESS
+  {
+    url: "https://feeds.reuters.com/reuters/businessNews"
+  },
+
+  // 🔥 REUTERS WORLD
+  {
+    url: "https://feeds.reuters.com/reuters/worldNews"
+  },
+
+  // 🔥 FX MACRO
+  {
+    url: "https://www.fxstreet.com/rss/news"
+  },
+
+  // 🔥 INVESTING LIVE
+  {
+    url: "https://investinglive.com/feed/news/"
+  },
+
+  // 🔥 OIL / COMMODITIES
+  {
+    url: "https://oilprice.com/rss/main"
+  }
+
 ];
 
 const parser = new RSSParser();

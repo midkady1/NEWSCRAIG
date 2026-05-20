@@ -3,4 +3,4 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install
 COPY bot.mjs ./
-CMD ["node", "bot.mjs"]
+CMD ["node", "bot.js"]

@@ -668,6 +668,9 @@ function moscowDayOfWeek() {
 // ─── Translation (Gemini primary, Google Translate fallback) ──────────────────
 
 async function translateToRussian(text) {
+  function containsCyrillic(text) {
+  return /[а-яА-ЯЁё]/.test(text);
+}
   if (!text || !text.trim()) return "";
 
   // Try Gemini first (more reliable)

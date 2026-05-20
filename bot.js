@@ -19,16 +19,6 @@ const FEEDS = [
     url: "https://www.forexlive.com/feed/news"
   },
 
-  // 🔥 REUTERS BUSINESS
-  {
-    url: "https://feeds.reuters.com/reuters/businessNews"
-  },
-
-  // 🔥 REUTERS WORLD
-  {
-    url: "https://feeds.reuters.com/reuters/worldNews"
-  },
-
   // 🔥 FX MACRO
   {
     url: "https://www.fxstreet.com/rss/news"

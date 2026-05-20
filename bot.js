@@ -7,7 +7,7 @@ const parser = new RSSParser();
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-const POLL_INTERVAL_MS = 8000;
+const POLL_INTERVAL_MS = 15000;
 const CALENDAR_INTERVAL_MS = 60000;
 
 const CALENDAR_URL =

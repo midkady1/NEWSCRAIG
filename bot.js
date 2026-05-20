@@ -1,0 +1,337 @@
+import RSSParser from "rss-parser";
+
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const TELEGRAM_CHANNEL = "@newscraig";
+
+const POLL_INTERVAL_MS = 15_000;
+const CALENDAR_INTERVAL_MS = 60_000;
+
+const CALENDAR_URL =
+  "https://nfs.faireconomy.media/ff_calendar_thisweek.json";
+
+const FEEDS = [
+  { url: "https://investinglive.com/feed/news/" },
+  { url: "https://feeds.marketwatch.com/marketwatch/topstories/" },
+];
+
+const parser = new RSSParser();
+
+const GOOD_KEYWORDS = [
+  "fed",
+  "fomc",
+  "powell",
+  "ecb",
+  "boe",
+  "boj",
+  "rba",
+  "rates",
+  "rate hike",
+  "rate cut",
+  "cpi",
+  "inflation",
+  "core inflation",
+  "pce",
+  "nfp",
+  "payrolls",
+  "unemployment",
+  "gdp",
+  "pmi",
+  "retail sales",
+  "tariffs",
+  "china",
+  "trump",
+  "oil",
+  "opec",
+  "war",
+  "missile",
+  "sanctions",
+  "treasury",
+  "yields",
+  "dollar",
+  "gold",
+  "risk off",
+  "risk-on",
+  "recession",
+  "hawkish",
+  "dovish",
+];
+
+const NOISE_BLACKLIST = [
+  "earnings",
+  "quarterly",
+  "dividend",
+  "buyback",
+  "ipo",
+  "acquisition",
+  "revenue",
+  "ceo",
+  "guidance",
+  "shares fell",
+  "shares rose",
+];
+
+const sentArticles = new Set();
+const semanticCache = new Set();
+const sentReminders = new Set();
+
+const EVENT_IMPACT_RULES = {
+  cpi: {
+    assets: ["GBP/USD", "GBP/JPY", "GBP/NZD"],
+    focus: "Core CPI и services inflation",
+    hot: "🔥 Инфляция выше ожиданий = bullish GBP / hawkish BOE",
+    cold: "📉 Инфляция ниже ожиданий = bearish GBP",
+  },
+
+  nfp: {
+    assets: ["EUR/USD", "Gold", "DXY", "USD/JPY"],
+    focus: "Average Hourly Earnings и revisions",
+    hot: "🔥 Сильный рынок труда = bullish USD",
+    cold: "📉 Слабый NFP = bearish USD / bullish Gold",
+  },
+
+  fomc: {
+    assets: ["DXY", "Gold", "NASDAQ", "US10Y"],
+    focus: "Dot plot и tone Powell",
+    hot: "🦅 Hawkish FOMC = bullish USD",
+    cold: "🕊 Dovish FOMC = bullish equities",
+  },
+
+  tariffs: {
+    assets: ["Gold", "AUD/USD", "USD/CNH", "NASDAQ"],
+    focus: "Risk sentiment",
+    hot: "⚠️ Тарифы обычно вызывают risk-off",
+    cold: "✅ De-escalation = risk-on",
+  },
+
+  oil: {
+    assets: ["WTI", "Brent", "CAD", "Inflation"],
+    focus: "Supply shocks / OPEC",
+    hot: "🛢 Рост нефти = inflationary",
+    cold: "📉 Падение нефти = disinflationary",
+  },
+};
+
+function normalizeText(text) {
+  return text.toLowerCase().replace(/[^a-z0-9\s]/gi, "").trim();
+}
+
+function semanticFingerprint(text) {
+  return normalizeText(text)
+    .split(/\s+/)
+    .filter((w) => w.length > 3)
+    .slice(0, 12)
+    .sort()
+    .join("|");
+}
+
+function detectCategory(text) {
+  const t = text.toLowerCase();
+
+  if (t.includes("cpi") || t.includes("inflation")) return "cpi";
+  if (t.includes("nfp") || t.includes("payroll")) return "nfp";
+  if (t.includes("fomc") || t.includes("powell")) return "fomc";
+  if (t.includes("tariff") || t.includes("trade war")) return "tariffs";
+  if (t.includes("oil") || t.includes("opec")) return "oil";
+
+  return null;
+}
+
+function buildImpactAnalysis(category) {
+  const data = EVENT_IMPACT_RULES[category];
+
+  if (!data) return "";
+
+  return `
+📊 *Market Impact*
+• ${data.hot}
+• ${data.cold}
+
+🎯 *Рынок смотрит:*
+${data.focus}
+
+📈 *Главные активы:*
+${data.assets.join(", ")}
+`;
+}
+
+function calculatePriority(text) {
+  const t = text.toLowerCase();
+
+  if (t.includes("emergency")) return "🔴 EXTREME";
+  if (t.includes("fomc")) return "🔴 HIGH";
+  if (t.includes("cpi")) return "🔴 HIGH";
+  if (t.includes("nfp")) return "🔴 HIGH";
+  if (t.includes("war")) return "🔴 HIGH";
+  if (t.includes("tariff")) return "🟠 MEDIUM";
+
+  return "🟢 NORMAL";
+}
+
+async function sendTelegram(text) {
+  const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+
+  const payload = {
+    parse_mode: "Markdown",
+    disable_web_page_preview: true,
+    text,
+  };
+
+  await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...payload,
+      chat_id: TELEGRAM_CHAT_ID,
+    }),
+  });
+
+  await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...payload,
+      chat_id: TELEGRAM_CHANNEL,
+    }),
+  });
+}
+
+async function checkFeed(feedUrl) {
+  try {
+    const feed = await parser.parseURL(feedUrl);
+
+    for (const entry of feed.items.slice(0, 10)) {
+      const title = entry.title || "";
+      const description = entry.contentSnippet || "";
+
+      const fullText = `${title} ${description}`.toLowerCase();
+
+      if (!GOOD_KEYWORDS.some((k) => fullText.includes(k))) continue;
+
+      if (NOISE_BLACKLIST.some((k) => fullText.includes(k))) continue;
+
+      const fingerprint = semanticFingerprint(title);
+
+      if (semanticCache.has(fingerprint)) continue;
+
+      semanticCache.add(fingerprint);
+
+      if (sentArticles.has(title)) continue;
+
+      sentArticles.add(title);
+
+      const category = detectCategory(fullText);
+
+      const impact = buildImpactAnalysis(category);
+
+      const priority = calculatePriority(fullText);
+
+      let riskTone = "";
+
+      if (
+        fullText.includes("tariff") ||
+        fullText.includes("missile") ||
+        fullText.includes("attack")
+      ) {
+        riskTone = "⚠️ *Risk-Off Sentiment Possible*";
+      }
+
+      if (
+        fullText.includes("rate cut") ||
+        fullText.includes("stimulus")
+      ) {
+        riskTone = "📈 *Risk-On Sentiment Possible*";
+      }
+
+      const message = `
+${priority} *NEWS CRAIG AI*
+
+📰 *${title}*
+
+${impact}
+
+${riskTone}
+
+🔗 ${entry.link}
+`.slice(0, 4000);
+
+      await sendTelegram(message);
+
+      console.log("[NEWS]", title);
+
+      await new Promise((r) => setTimeout(r, 2500));
+    }
+  } catch (err) {
+    console.error("Feed error:", err);
+  }
+}
+
+async function checkAllFeeds() {
+  for (const feed of FEEDS) {
+    await checkFeed(feed.url);
+  }
+}
+
+async function checkCalendarReminders() {
+  try {
+    const res = await fetch(CALENDAR_URL);
+
+    if (!res.ok) return;
+
+    const events = await res.json();
+
+    const now = Date.now();
+
+    for (const event of events) {
+      if (event.impact !== "High") continue;
+
+      const minutesUntil =
+        (new Date(event.date).getTime() - now) / 60000;
+
+      if (minutesUntil < 14 || minutesUntil > 16) continue;
+
+      const key = `${event.title}-${event.date}`;
+
+      if (sentReminders.has(key)) continue;
+
+      sentReminders.add(key);
+
+      const lower = event.title.toLowerCase();
+
+      const category = detectCategory(lower);
+
+      const impact = buildImpactAnalysis(category);
+
+      const message = `
+⏰ *HIGH IMPACT EVENT IN 15 MINUTES*
+
+📌 *${event.title}*
+
+📊 Forecast: ${event.forecast || "N/A"}
+📉 Previous: ${event.previous || "N/A"}
+
+${impact}
+
+🕒 Prepare for volatility.
+`;
+
+      await sendTelegram(message);
+
+      console.log("[CALENDAR]", event.title);
+    }
+  } catch (err) {
+    console.error("Calendar error:", err);
+  }
+}
+
+console.log("🚀 NEWS CRAIG AI TERMINAL STARTED");
+
+checkAllFeeds();
+checkCalendarReminders();
+
+setInterval(checkAllFeeds, POLL_INTERVAL_MS);
+setInterval(checkCalendarReminders, CALENDAR_INTERVAL_MS);

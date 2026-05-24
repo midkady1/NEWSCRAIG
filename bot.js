@@ -141,26 +141,35 @@ function moscowDayOfWeek() {
   return new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Moscow" })).getDay();
 }
 
-// ─── Translation (Google Translate) ──────────────────────────────────────────
+// ─── Translation (LibreTranslate) ──────────────────────────────────────────
+
+const LIBRETRANSLATE_URL = process.env.LIBRETRANSLATE_URL || "http://localhost:5000";
 
 async function translateToRussian(text) {
   if (!text || !text.trim()) return "";
+  
+  try {
+    const res = await fetch(`${LIBRETRANSLATE_URL}/translate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        q: text,
+        source: "en",
+        target: "ru",
+        format: "text"
+      }),
+      signal: AbortSignal.timeout(8000)
+    });
 
-  for (const clientId of ["gtx", "dict-chrome-ex"]) {
-    try {
-      const url = `https://translate.googleapis.com/translate_a/single?client=${clientId}&sl=en&tl=ru&dt=t&q=${encodeURIComponent(text)}`;
-      const res = await fetch(url, {
-        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
-        signal: AbortSignal.timeout(5000),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const translated = data[0].map((s) => s[0]).join("").trim();
-        if (translated && /[а-яёА-ЯЁ]/.test(translated)) return translated;
-      }
-    } catch { /* continue */ }
+    if (res.ok) {
+      const data = await res.json();
+      return data.translatedText || text;
+    }
+  } catch (err) {
+    console.warn(`[LibreTranslate] Error: ${err.message}`);
   }
 
+  // Если LibreTranslate не работает — возвращаем оригинал
   return text;
 }
 

@@ -181,6 +181,14 @@ async function translateToRussian(text) {
   return text;
 }
 
+// === ТЕСТ ПЕРЕВОДА ===
+console.log("🔧 ТЕСТ ПЕРЕВОДА ЗАПУЩЕН");
+translateToRussian("The Federal Reserve is expected to cut interest rates next month.")
+  .then(ru => {
+    console.log("✅ ТЕСТ УСПЕШЕН:", ru);
+  })
+  .catch(err => console.error("❌ ТЕСТ ОШИБКА:", err.message));
+
 // ─── Telegram ─────────────────────────────────────────────────────────────────
 
 async function sendToChat(chatId, text) {

@@ -182,12 +182,14 @@ async function translateToRussian(text) {
 }
 
 // === ТЕСТ ПЕРЕВОДА ===
-console.log("🔧 ТЕСТ ПЕРЕВОДА ЗАПУЩЕН");
-translateToRussian("The Federal Reserve is expected to cut interest rates next month.")
+console.log("[TEST] Запускаю тестовый перевод...");
+translateToRussian("The Federal Reserve will hike rates due to strong inflation")
   .then(ru => {
-    console.log("✅ ТЕСТ УСПЕШЕН:", ru);
+    console.log("[TEST] Результат перевода:", ru);
   })
-  .catch(err => console.error("❌ ТЕСТ ОШИБКА:", err.message));
+  .catch(err => {
+    console.error("[TEST] Ошибка:", err.message);
+  });
 
 // ─── Telegram ─────────────────────────────────────────────────────────────────
 

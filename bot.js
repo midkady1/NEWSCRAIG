@@ -536,7 +536,7 @@ async function main() {
     "🚀 *News Craig v3 запущен!*\n\n" +
     "🔴 Срочные новости — приоритетный формат\n" +
     "⚡️ Обычные макро-новости — стандартный формат\n" +
-    "🌐 Перевод через LibreTranslate (debug mode)\n"
+    "🌐 Перевод через LibreTranslate (debug mode)\n" +
     "⏰ Напоминания за 15 минут до выхода данных\n" +
     "📰 Источники: Yahoo Finance, ForexLive\n" +
     "🇺🇸 Посты Трампа: Truth Social (каждые 30 сек)"

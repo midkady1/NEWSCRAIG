@@ -181,15 +181,11 @@ async function translateToRussian(text) {
   return text;
 }
 
-// === ТЕСТ ПЕРЕВОДА ===
+// === ТЕСТ ПЕРЕВОДА (чистый) ===
 console.log("[TEST] Запускаю тестовый перевод...");
-translateToRussian("The Federal Reserve will hike rates due to strong inflation")
-  .then(ru => {
-    console.log("[TEST] Результат перевода:", ru);
-  })
-  .catch(err => {
-    console.error("[TEST] Ошибка:", err.message);
-  });
+translateToRussian("Test translation: The market is reacting to Fed decision")
+  .then(ru => console.log("[TEST] Результат:", ru))
+  .catch(err => console.error("[TEST] Ошибка:", err.message));
 
 // ─── Telegram ─────────────────────────────────────────────────────────────────
 

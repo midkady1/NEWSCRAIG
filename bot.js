@@ -147,9 +147,14 @@ const LIBRETRANSLATE_URL = process.env.LIBRETRANSLATE_URL || "http://localhost:5
 
 async function translateToRussian(text) {
   if (!text || !text.trim()) return "";
-  
+
+  console.log(`[DEBUG] Перевожу текст длиной: ${text.length} символов`);
+
   try {
-    const res = await fetch(`${LIBRETRANSLATE_URL}/translate`, {
+    const url = process.env.LIBRETRANSLATE_URL || "http://localhost:5000";
+    console.log(`[DEBUG] Использую LibreTranslate: ${url}`);
+
+    const res = await fetch(`${url}/translate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -158,18 +163,21 @@ async function translateToRussian(text) {
         target: "ru",
         format: "text"
       }),
-      signal: AbortSignal.timeout(8000)
+      signal: AbortSignal.timeout(10000)
     });
 
     if (res.ok) {
       const data = await res.json();
+      console.log(`[DEBUG] Перевод УДАЛСЯ`);
       return data.translatedText || text;
+    } else {
+      console.log(`[DEBUG] Ошибка HTTP: ${res.status}`);
     }
   } catch (err) {
-    console.warn(`[LibreTranslate] Error: ${err.message}`);
+    console.error(`[DEBUG] Ошибка LibreTranslate: ${err.message}`);
   }
 
-  // Если LibreTranslate не работает — возвращаем оригинал
+  console.log(`[DEBUG] Возвращаю оригинал (английский)`);
   return text;
 }
 
